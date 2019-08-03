@@ -24,3 +24,11 @@ print (results)
 
 ### Pretrained weights
 You can download pretrained weights via this link: https://drive.google.com/open?id=1YCtzLvkJcYHaccFNh_LXt4v2i-FpcgpW
+
+### Some examples
+| demo images | Prediction |
+| ---         |     ---      |
+| <img src="./demo_image/big_text_1.png" width="300">    |   550sf   |
+| <img src="./demo_image/big_text_2.png" width="300">      |    550sf    |
+| <img src="./demo_image/small_text_1.png" width="300">  |   s20   |
+| <img src="./demo_image/small_text_2.png" width="300">  |   p32   |
