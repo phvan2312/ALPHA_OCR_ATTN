@@ -28,7 +28,7 @@ You can download pretrained weights via this link: https://drive.google.com/open
 ### Some examples
 | demo images | Prediction |
 | ---         |     ---      |
-| <img src="./demo_images/big_text_1.png" width="300">    |   550sf   |
-| <img src="./demo_images/big_text_2.png" width="300">      |    550sf    |
-| <img src="./demo_images/small_text_1.png" width="300">  |   s20   |
-| <img src="./demo_images/small_text_2.png" width="300">  |   p32   |
+| <img src="./demo_images/big_text_1.png" width="300" height="100">    |   550sf   |
+| <img src="./demo_images/big_text_2.png" width="300" height="100">      |    550sf    |
+| <img src="./demo_images/small_text_1.png" width="300" height="100">  |   s20   |
+| <img src="./demo_images/small_text_2.png" width="300" height="100">  |   p32   |
