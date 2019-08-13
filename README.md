@@ -25,7 +25,7 @@ print (results)
 ```
 
 ### Pretrained weights
-You can download pretrained weights via this link: https://drive.google.com/open?id=1YCtzLvkJcYHaccFNh_LXt4v2i-FpcgpW
+You can download pretrained weights via this link: https://drive.google.com/open?id=1kOyb2RwyrLsLYA5oHCxETu6WrNkMYdqp
 
 ### Some examples
 | demo images | Prediction |
