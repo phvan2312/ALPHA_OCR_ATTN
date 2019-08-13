@@ -189,6 +189,33 @@ class LmdbDataset(Dataset):
 
         return (img, label)
 
+class SingleImageArrayDataset(Dataset):
+    def __init__(self, image_list, opt):
+        self.opt = opt
+        self.image_list = image_list
+
+        self.nSamples = len(self.image_list)
+
+    def __len__(self):
+        return self.nSamples
+
+    def __getitem__(self, index):
+        try:
+            if self.opt.rgb:
+                img = Image.fromarray(self.image_list[index]) #Image.open(self.image_path_list[index]).convert('RGB')  # for color image
+            else:
+                img = Image.fromarray(self.image_list[index]).convert('L') #Image.open(self.image_path_list[index]).convert('L')
+
+        except IOError:
+            print(f'Corrupted image for {index}')
+            # make dummy image and dummy label for corrupted image.
+            if self.opt.rgb:
+                img = Image.new('RGB', (self.opt.imgW, self.opt.imgH))
+            else:
+                img = Image.new('L', (self.opt.imgW, self.opt.imgH))
+
+        return (img, "not_existed_tmp.png") #(img, self.image_list[index])
+
 class SingleFileDataset(Dataset):
     def __init__(self, image_path_list, opt):
         self.opt = opt

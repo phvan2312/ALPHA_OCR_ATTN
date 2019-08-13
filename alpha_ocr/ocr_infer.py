@@ -6,7 +6,7 @@ import torch.backends.cudnn as cudnn
 import torch.utils.data
 
 from alpha_ocr.utils import CTCLabelConverter, AttnLabelConverter
-from alpha_ocr.dataset import RawDataset, AlignCollate, SingleFileDataset
+from alpha_ocr.dataset import RawDataset, AlignCollate, SingleFileDataset, SingleImageArrayDataset
 from alpha_ocr.model import Model
 
 default_opt = {
@@ -67,10 +67,10 @@ class OCRInferenceModel:
 
         self.opt = opt
 
-    def predict(self, img_fn):
+    def predict(self, img_input):
         opt = self.opt
         AlignCollate_demo = AlignCollate(imgH=opt.imgH, imgW=opt.imgW, keep_ratio_with_pad=opt.PAD)
-        demo_data = SingleFileDataset([img_fn], opt=opt)  # use RawDataset
+        demo_data = SingleImageArrayDataset([img_input], opt=opt)  # use RawDataset
         demo_loader = torch.utils.data.DataLoader(
             demo_data, batch_size=1,
             shuffle=False,
@@ -119,9 +119,15 @@ class OCRInferenceModel:
 
         return results
 
+
+
 if __name__ == '__main__':
-    saved_model_fn = "/home/vanph/Desktop/alpha/deep-text-recognition-benchmark/saved_models/TPS-VGG-BiLSTM-Attn-Seed1111_saved/best_accuracy.pth"
+    saved_model_fn = "/home/vanph/Desktop/alpha/deep-text-recognition-benchmark/saved_models/TPS-VGG-BiLSTM-Attn-Seed1111/best_accuracy.pth"
     ocr_model = OCRInferenceModel(saved_model=saved_model_fn)
 
-    results = ocr_model.predict(img_fn="/home/vanph/Desktop/alpha/deep-text-recognition-benchmark/data/images_rotated/small_text_415.png")
+    import cv2
+
+    #results = ocr_model.predict(img_input="./demo_images/small_text_1.png")
+    results = ocr_model.predict(img_input=cv2.imread("./demo_images/small_text_1.png"))
+
     print (results)
