@@ -16,7 +16,9 @@ ocr_model = OCRInferenceModel(saved_model=saved_model_fn)
 
 # testing with specific image path
 image_fn = "where_is_your_image_path"
-results  = ocr_model.predict(image_fn)
+
+import cv2
+results  = ocr_model.predict(cv2.imread(image_fn))
 
 print (results)
 
