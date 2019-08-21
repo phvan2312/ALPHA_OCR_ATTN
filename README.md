@@ -28,6 +28,7 @@ print (results)
 You can download pretrained weights via this link: https://drive.google.com/open?id=1kOyb2RwyrLsLYA5oHCxETu6WrNkMYdqp
 
 ### Some examples
+**Processing time is about 0.04-0.05s/image on CPU**
 | demo images | Prediction |
 | ---         |     ---      |
 | <img src="./demo_images/big_text_1.png" width="300" height="100">    |   550sf   |
