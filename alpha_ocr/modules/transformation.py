@@ -149,7 +149,7 @@ class GridGenerator(nn.Module):
         batch_inv_delta_C = self.inv_delta_C.repeat(batch_size, 1, 1)
         batch_P_hat = self.P_hat.repeat(batch_size, 1, 1)
 
-        if torch.cuda.is_available():
+        if False:
             batch_C_prime_with_zeros = torch.cat((batch_C_prime, torch.zeros(
                 batch_size, 3, 2).float().cuda()), dim=1)  # batch_size x F+3 x 2
         else:

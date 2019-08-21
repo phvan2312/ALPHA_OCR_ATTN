@@ -21,7 +21,6 @@ from alpha_ocr.modules.feature_extraction import VGG_FeatureExtractor, RCNN_Feat
 from alpha_ocr.modules.sequence_modeling import BidirectionalLSTM
 from alpha_ocr.modules.prediction import Attention
 
-
 class Model(nn.Module):
 
     def __init__(self, opt):

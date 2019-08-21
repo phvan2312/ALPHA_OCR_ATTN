@@ -2,8 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-FloatTensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
-LongTensor = torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor
+
+FloatTensor = torch.FloatTensor #torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
+LongTensor = torch.LongTensor #torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor
 
 class Attention(nn.Module):
 

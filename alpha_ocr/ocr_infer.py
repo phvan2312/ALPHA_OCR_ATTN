@@ -21,10 +21,10 @@ default_opt = {
     'FeatureExtraction':'VGG',
     'SequenceModeling':"BiLSTM",
     'Prediction':'Attn',
-    'num_fiducial': 20,
+    'num_fiducial': 10,
     'input_channel': 1,
-    'output_channel': 512,
-    'hidden_size': 256,
+    'output_channel': 128,
+    'hidden_size': 56,
 }
 
 class my_opt:
@@ -32,9 +32,18 @@ class my_opt:
        for k, v in opt.items():
            setattr(self, k, v)
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-IntTensor = torch.cuda.IntTensor if torch.cuda.is_available() else torch.IntTensor
-LongTensor = torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor
+device = torch.device('cpu' if torch.cuda.is_available() else 'cpu')
+IntTensor = torch.IntTensor #torch.cuda.IntTensor if device.type=='gpu' else torch.IntTensor
+LongTensor = torch.LongTensor # torch.cuda.LongTensor if device.type=='gpu' else torch.LongTensor
+
+import torch.nn as nn
+class Wrapper(nn.Module):
+    def __init__(self, model):
+        super(Wrapper, self).__init__()
+        self.module = model
+
+    def forward(self, *inputs, **kwargs):
+        return self.module(*inputs, **kwargs)
 
 class OCRInferenceModel:
     def __init__(self, opt=default_opt, saved_model=''):
@@ -50,14 +59,16 @@ class OCRInferenceModel:
         if opt.rgb:
             opt.input_channel = 3
 
-        self.model = Model(opt)
+        self.model = Wrapper(Model(opt).to(device))
         print('model input parameters', opt.imgH, opt.imgW, opt.num_fiducial, opt.input_channel, opt.output_channel,
               opt.hidden_size, opt.num_class, opt.batch_max_length, opt.Transformation, opt.FeatureExtraction,
               opt.SequenceModeling, opt.Prediction)
 
-        self.model = torch.nn.DataParallel(self.model)
-        if torch.cuda.is_available():
-            self.model = self.model.cuda()
+        #self.model = torch.nn.DataParallel(self.model)
+        self.model = self.model.to(device)
+
+        #self.model.device_ids = None
+        #self.model.module = self.model.module.to(device)
 
         # load model
         print('loading pretrained model from %s' % opt.saved_model)
@@ -75,7 +86,7 @@ class OCRInferenceModel:
             demo_data, batch_size=1,
             shuffle=False,
             num_workers=int(opt.workers),
-            collate_fn=AlignCollate_demo, pin_memory=True)
+            collate_fn=AlignCollate_demo, pin_memory=False)
 
         results = []
 
@@ -119,15 +130,47 @@ class OCRInferenceModel:
 
         return results
 
-
+import time
+import os
 
 if __name__ == '__main__':
-    saved_model_fn = "/home/vanph/Desktop/alpha/deep-text-recognition-benchmark/saved_models/TPS-VGG-BiLSTM-Attn-Seed1111/best_accuracy.pth"
+    tmp_value = os.environ.get('CUDA_VISIBLE_DEVICES', None)
+    os.environ['CUDA_VISIBLE_DEVICES'] = ''
+
+
+
+    saved_model_fn = "/home/vanph/Desktop/saved_models/TPS-VGG-BiLSTM-Attn-Seed1111/best_accuracy.pth"
+    #saved_model_fn = "/home/vanph/Downloads/best_accuracy_v2.pth"
     ocr_model = OCRInferenceModel(saved_model=saved_model_fn)
+
+
 
     import cv2
 
-    #results = ocr_model.predict(img_input="./demo_images/small_text_1.png")
-    results = ocr_model.predict(img_input=cv2.imread("./demo_images/small_text_1.png"))
+    #time.sleep(30)
 
-    print (results)
+    #results = ocr_model.predict(img_input="./demo_images/small_text_1.png")
+    s_time = time.time()
+    results = ocr_model.predict(img_input=cv2.imread("/home/vanph/Desktop/alpha/deep-text-recognition-benchmark/data/images_rotated_reverse/reversed_big_text_174.png"))
+
+    print (results, time.time() - s_time)
+
+    s_time = time.time()
+    results = ocr_model.predict(img_input=cv2.imread(
+        "/home/vanph/Desktop/alpha/deep-text-recognition-benchmark/data/images_rotated_reverse/reversed_big_text_174.png"))
+
+    print(results, time.time() - s_time)
+
+    s_time = time.time()
+    results = ocr_model.predict(img_input=cv2.imread(
+        "/home/vanph/Desktop/alpha/deep-text-recognition-benchmark/data/images_rotated_reverse/reversed_big_text_174.png"))
+
+    print(results, time.time() - s_time)
+
+    if tmp_value is None:
+        del os.environ['CUDA_VISIBLE_DEVICES']
+    else:
+        os.environ['CUDA_VISIBLE_DEVICES'] = tmp_value
+
+    #
+    # exit()
