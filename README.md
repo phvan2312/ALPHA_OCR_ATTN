@@ -25,7 +25,7 @@ print (results)
 ```
 
 ### Pretrained weights
-You can download pretrained weights via this link: https://drive.google.com/open?id=1kOyb2RwyrLsLYA5oHCxETu6WrNkMYdqp
+You can download pretrained weights via this link: https://drive.google.com/open?id=1FtfwjGZ3jmThvZ7mTqs8L7Kw6rAio5-o
 
 ### Some examples
 **Processing time is about 0.04-0.05s/image on CPU**
