@@ -7,7 +7,7 @@ pip install git+ssh://git@github.com/phvan2312/ALPHA_OCR_ATTN.git
 ```
 
 ## Usage
-Please set ENVIRONMENT CUDA_VISIBLE_DEVICES='' to run on CPU. 
+ 
 ```python
 from alpha_ocr.ocr_infer import OCRInferenceModel
 saved_model_fn = "where_is_your_saved_model_path"
