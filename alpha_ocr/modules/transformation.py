@@ -7,7 +7,7 @@ import torch.nn.functional as F
 class TPS_SpatialTransformerNetwork(nn.Module):
     """ Rectification Network of RARE, namely TPS based STN """
 
-    def __init__(self, F, I_size, I_r_size, I_channel_num=1):
+    def __init__(self, F, I_size, I_r_size, I_channel_num=1,device=None):
         """ Based on RARE TPS
         input:
             batch_I: Batch Input Image [batch_size x I_channel_num x I_height x I_width]
@@ -23,7 +23,8 @@ class TPS_SpatialTransformerNetwork(nn.Module):
         self.I_r_size = I_r_size  # = (I_r_height, I_r_width)
         self.I_channel_num = I_channel_num
         self.LocalizationNetwork = LocalizationNetwork(self.F, self.I_channel_num)
-        self.GridGenerator = GridGenerator(self.F, self.I_r_size)
+        self.GridGenerator = GridGenerator(self.F, self.I_r_size,device)
+        self.device = device
 
     def forward(self, batch_I):
         batch_C_prime = self.LocalizationNetwork(batch_I)  # batch_size x K x 2
@@ -81,7 +82,7 @@ class LocalizationNetwork(nn.Module):
 class GridGenerator(nn.Module):
     """ Grid Generator of RARE, which produces P_prime by multipling T with P """
 
-    def __init__(self, F, I_r_size):
+    def __init__(self, F, I_r_size, device):
         """ Generate P_hat and inv_delta_C for later """
         super(GridGenerator, self).__init__()
         self.eps = 1e-6
@@ -89,6 +90,8 @@ class GridGenerator(nn.Module):
         self.F = F
         self.C = self._build_C(self.F)  # F x 2
         self.P = self._build_P(self.I_r_width, self.I_r_height)
+
+        self.device = device
         self.register_buffer("inv_delta_C", torch.tensor(self._build_inv_delta_C(self.F, self.C)).float())  # F+3 x F+3
         self.register_buffer("P_hat", torch.tensor(self._build_P_hat(self.F, self.C, self.P)).float())  # n x F+3
 
@@ -149,12 +152,15 @@ class GridGenerator(nn.Module):
         batch_inv_delta_C = self.inv_delta_C.repeat(batch_size, 1, 1)
         batch_P_hat = self.P_hat.repeat(batch_size, 1, 1)
 
-        if False:
-            batch_C_prime_with_zeros = torch.cat((batch_C_prime, torch.zeros(
-                batch_size, 3, 2).float().cuda()), dim=1)  # batch_size x F+3 x 2
-        else:
-            batch_C_prime_with_zeros = torch.cat((batch_C_prime, torch.zeros(
-                batch_size, 3, 2).float()), dim=1)  # batch_size x F+3 x 2
+        # if self.device:
+        #     batch_C_prime_with_zeros = torch.cat((batch_C_prime, torch.zeros(
+        #         batch_size, 3, 2).float().to(self.device)), dim=1)  # batch_size x F+3 x 2
+        # else:
+        #     batch_C_prime_with_zeros = torch.cat((batch_C_prime, torch.zeros(
+        #         batch_size, 3, 2).float()), dim=1)  # batch_size x F+3 x 2
+
+        batch_C_prime_with_zeros = torch.cat((batch_C_prime, torch.zeros(
+            batch_size, 3, 2).float().to(self.device)), dim=1)  # batch_size x F+3 x 2
 
         batch_T = torch.bmm(batch_inv_delta_C, batch_C_prime_with_zeros)  # batch_size x F+3 x 2
         batch_P_prime = torch.bmm(batch_P_hat, batch_T)  # batch_size x n x 2

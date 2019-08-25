@@ -23,7 +23,7 @@ from alpha_ocr.modules.prediction import Attention
 
 class Model(nn.Module):
 
-    def __init__(self, opt):
+    def __init__(self, opt, device):
         super(Model, self).__init__()
         self.opt = opt
         self.stages = {'Trans': opt.Transformation, 'Feat': opt.FeatureExtraction,
@@ -32,7 +32,8 @@ class Model(nn.Module):
         """ Transformation """
         if opt.Transformation == 'TPS':
             self.Transformation = TPS_SpatialTransformerNetwork(
-                F=opt.num_fiducial, I_size=(opt.imgH, opt.imgW), I_r_size=(opt.imgH, opt.imgW), I_channel_num=opt.input_channel)
+                F=opt.num_fiducial, I_size=(opt.imgH, opt.imgW), I_r_size=(opt.imgH, opt.imgW),
+                I_channel_num=opt.input_channel, device=device)
         else:
             print('No Transformation module specified')
 
@@ -62,7 +63,7 @@ class Model(nn.Module):
         if opt.Prediction == 'CTC':
             self.Prediction = nn.Linear(self.SequenceModeling_output, opt.num_class)
         elif opt.Prediction == 'Attn':
-            self.Prediction = Attention(self.SequenceModeling_output, opt.hidden_size, opt.num_class)
+            self.Prediction = Attention(self.SequenceModeling_output, opt.hidden_size, opt.num_class, device)
         else:
             raise Exception('Prediction is neither CTC or Attn')
 

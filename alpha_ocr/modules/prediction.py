@@ -8,17 +8,19 @@ LongTensor = torch.LongTensor #torch.cuda.LongTensor if torch.cuda.is_available(
 
 class Attention(nn.Module):
 
-    def __init__(self, input_size, hidden_size, num_classes):
+    def __init__(self, input_size, hidden_size, num_classes, device):
         super(Attention, self).__init__()
         self.attention_cell = AttentionCell(input_size, hidden_size, num_classes)
         self.hidden_size = hidden_size
         self.num_classes = num_classes
         self.generator = nn.Linear(hidden_size, num_classes)
 
+        self.device = device
+
     def _char_to_onehot(self, input_char, onehot_dim=38):
         input_char = input_char.unsqueeze(1)
         batch_size = input_char.size(0)
-        one_hot = FloatTensor(batch_size, onehot_dim).zero_()
+        one_hot = FloatTensor(batch_size, onehot_dim).zero_().to(self.device)
         one_hot = one_hot.scatter_(1, input_char, 1)
         return one_hot
 
@@ -32,9 +34,9 @@ class Attention(nn.Module):
         batch_size = batch_H.size(0)
         num_steps = batch_max_length + 1  # +1 for [s] at end of sentence.
 
-        output_hiddens = FloatTensor(batch_size, num_steps, self.hidden_size).fill_(0)
-        hidden = (FloatTensor(batch_size, self.hidden_size).fill_(0),
-                  FloatTensor(batch_size, self.hidden_size).fill_(0))
+        output_hiddens = FloatTensor(batch_size, num_steps, self.hidden_size).fill_(0).to(self.device)
+        hidden = (FloatTensor(batch_size, self.hidden_size).fill_(0).to(self.device),
+                  FloatTensor(batch_size, self.hidden_size).fill_(0).to(self.device))
 
         if is_train:
             for i in range(num_steps):
@@ -46,8 +48,8 @@ class Attention(nn.Module):
             probs = self.generator(output_hiddens)
 
         else:
-            targets = LongTensor(batch_size).fill_(0)  # [GO] token
-            probs = FloatTensor(batch_size, num_steps, self.num_classes).fill_(0)
+            targets = LongTensor(batch_size).fill_(0).to(self.device)  # [GO] token
+            probs = FloatTensor(batch_size, num_steps, self.num_classes).fill_(0).to(self.device)
 
             for i in range(num_steps):
                 char_onehots = self._char_to_onehot(targets, onehot_dim=self.num_classes)

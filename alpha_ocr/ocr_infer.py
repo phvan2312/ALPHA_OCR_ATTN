@@ -10,7 +10,7 @@ from alpha_ocr.dataset import RawDataset, AlignCollate, SingleFileDataset, Singl
 from alpha_ocr.model import Model
 
 default_opt = {
-    'workers':4,
+    'workers':0,
     'batch_max_length':10,
     'imgH':32,
     'imgW':100,
@@ -46,9 +46,16 @@ class Wrapper(nn.Module):
         return self.module(*inputs, **kwargs)
 
 class OCRInferenceModel:
-    def __init__(self, opt=default_opt, saved_model=''):
+    def __init__(self, opt=default_opt, saved_model='', debug_mode=False, mode='cuda'):
         opt.update({'saved_model':saved_model})
         opt = my_opt(opt)
+
+        self.debug_mode = debug_mode
+        if mode == 'cuda' and not torch.cuda.is_available():
+            mode = 'cpu'
+            print ("mode:gpu but no cuda found, use cpu instead")
+
+        self.device = torch.device(mode)
 
         if 'CTC' in opt.Prediction:
             self.converter = CTCLabelConverter(opt.character)
@@ -59,13 +66,13 @@ class OCRInferenceModel:
         if opt.rgb:
             opt.input_channel = 3
 
-        self.model = Wrapper(Model(opt).to(device))
+        self.model = Wrapper(Model(opt, self.device).to(device))
         print('model input parameters', opt.imgH, opt.imgW, opt.num_fiducial, opt.input_channel, opt.output_channel,
               opt.hidden_size, opt.num_class, opt.batch_max_length, opt.Transformation, opt.FeatureExtraction,
               opt.SequenceModeling, opt.Prediction)
 
         #self.model = torch.nn.DataParallel(self.model)
-        self.model = self.model.to(device)
+        self.model = self.model.to(self.device)
 
         #self.model.device_ids = None
         #self.model.module = self.model.module.to(device)
@@ -85,7 +92,7 @@ class OCRInferenceModel:
         demo_loader = torch.utils.data.DataLoader(
             demo_data, batch_size=1,
             shuffle=False,
-            num_workers=int(opt.workers),
+            num_workers=self.opt.workers,
             collate_fn=AlignCollate_demo, pin_memory=False)
 
         results = []
@@ -93,21 +100,20 @@ class OCRInferenceModel:
         for image_tensors, image_path_list in demo_loader:
             batch_size = image_tensors.size(0)
             with torch.no_grad():
-                image = image_tensors.to(device)
+                image = image_tensors.to(self.device)
                 # For max length prediction
 
-                length_for_pred = IntTensor([opt.batch_max_length] * batch_size)
-                text_for_pred = LongTensor(batch_size, opt.batch_max_length + 1).fill_(0)
+                length_for_pred = IntTensor([opt.batch_max_length] * batch_size).to(device)
+                text_for_pred = LongTensor(batch_size, opt.batch_max_length + 1).fill_(0).to(device)
 
             if 'CTC' in opt.Prediction:
                 preds = self.model(image, text_for_pred).log_softmax(2)
 
                 # Select max probabilty (greedy decoding) then decode index to character
-                preds_size = torch.IntTensor([preds.size(1)] * batch_size)
+                preds_size = torch.IntTensor([preds.size(1)] * batch_size).to(device)
                 _, preds_index = preds.permute(1, 0, 2).max(2)
                 preds_index = preds_index.transpose(1, 0).contiguous().view(-1)
                 preds_str = self.converter.decode(preds_index.data, preds_size.data)
-
             else:
                 preds = self.model(image, text_for_pred, is_train=False)
 
@@ -115,16 +121,19 @@ class OCRInferenceModel:
                 _, preds_index = preds.max(2)
                 preds_str = self.converter.decode(preds_index, length_for_pred)
 
-            print('-' * 80)
-            print('image_path\tpredicted_labels')
-            print('-' * 80)
+            if self.debug_mode:
+                print('-' * 80)
+                print('image_path\tpredicted_labels')
+                print('-' * 80)
+
             for _id, (img_name, pred) in enumerate(zip(image_path_list, preds_str)):
                 if 'Attn' in opt.Prediction:
                     pred = pred[:pred.find('[s]')]  # prune after "end of sentence" token ([s])
 
                 preds_str[_id] = pred
 
-                print(f'{img_name}\t{pred}')
+                if self.debug_mode:
+                    print(f'{img_name}\t{pred}')
 
             results += preds_str
 
@@ -134,43 +143,27 @@ import time
 import os
 
 if __name__ == '__main__':
-    tmp_value = os.environ.get('CUDA_VISIBLE_DEVICES', None)
-    os.environ['CUDA_VISIBLE_DEVICES'] = ''
+    #saved_model_fn = "/home/vanph/Desktop/saved_models/TPS-VGG-BiLSTM-Attn-Seed1111/best_accuracy_small_200819.pth"
+    saved_model_fn = "/home/vanph/Desktop/alpha/best_accuracy_2408.pth"
+    ocr_model = OCRInferenceModel(saved_model=saved_model_fn, mode='cuda')
 
-
-
-    saved_model_fn = "/home/vanph/Desktop/saved_models/TPS-VGG-BiLSTM-Attn-Seed1111/best_accuracy.pth"
-    #saved_model_fn = "/home/vanph/Downloads/best_accuracy_v2.pth"
-    ocr_model = OCRInferenceModel(saved_model=saved_model_fn)
-
-
+    #time.sleep(15)
 
     import cv2
-
-    #time.sleep(30)
-
-    #results = ocr_model.predict(img_input="./demo_images/small_text_1.png")
-    s_time = time.time()
-    results = ocr_model.predict(img_input=cv2.imread("/home/vanph/Desktop/alpha/deep-text-recognition-benchmark/data/images_rotated_reverse/reversed_big_text_174.png"))
-
-    print (results, time.time() - s_time)
-
-    s_time = time.time()
-    results = ocr_model.predict(img_input=cv2.imread(
-        "/home/vanph/Desktop/alpha/deep-text-recognition-benchmark/data/images_rotated_reverse/reversed_big_text_174.png"))
-
-    print(results, time.time() - s_time)
-
-    s_time = time.time()
-    results = ocr_model.predict(img_input=cv2.imread(
-        "/home/vanph/Desktop/alpha/deep-text-recognition-benchmark/data/images_rotated_reverse/reversed_big_text_174.png"))
-
-    print(results, time.time() - s_time)
-
-    if tmp_value is None:
-        del os.environ['CUDA_VISIBLE_DEVICES']
-    else:
-        os.environ['CUDA_VISIBLE_DEVICES'] = tmp_value
-
+    # s_time = time.time()
+    # results = ocr_model.predict(img_input=cv2.imread("/home/vanph/Desktop/new_data/k/511M_IP Camera1_Camera_192.168.1.250_20190810141342_20190810141657_2314036.mp4_snapshot_00.15_[2019.08.14_23.14.54].jpg.png_3.png"))
+    # print (results, time.time() - s_time)
     #
     # exit()
+
+    s_time = time.time()
+    results = ocr_model.predict(img_input=cv2.imread("./demo_images/small_text_2.png"))
+    print(results, time.time() - s_time)
+
+    s_time = time.time()
+    results = ocr_model.predict(img_input=cv2.imread("./demo_images/big_text_1.png"))
+    print(results, time.time() - s_time)
+
+    s_time = time.time()
+    results = ocr_model.predict(img_input=cv2.imread("./demo_images/big_text_2.png"))
+    print(results, time.time() - s_time)
