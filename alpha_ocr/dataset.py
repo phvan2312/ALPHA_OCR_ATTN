@@ -291,7 +291,7 @@ class ResizeNormalize(object):
     def __call__(self, img):
         img = img.resize(self.size, self.interpolation)
         img = self.toTensor(img)
-        img.sub_(0.5).div_(0.5)
+        #img.sub_(0.5).div_(0.5)
         return img
 
 
