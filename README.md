@@ -12,7 +12,7 @@ Please set ENVIRONMENT CUDA_VISIBLE_DEVICES='' to run on CPU.
 from alpha_ocr.ocr_infer import OCRInferenceModel
 saved_model_fn = "where_is_your_saved_model_path"
 
-ocr_model = OCRInferenceModel(saved_model=saved_model_fn)
+ocr_model = OCRInferenceModel(saved_model=saved_model_fn,debug_mode=False, mode='cuda')
 
 # testing with specific image path
 image_fn = "where_is_your_image_path"
@@ -25,7 +25,7 @@ print (results)
 ```
 
 ### Pretrained weights
-You can download pretrained weights via this link: https://drive.google.com/open?id=1kOyb2RwyrLsLYA5oHCxETu6WrNkMYdqp
+You can download pretrained weights via this link: https://drive.google.com/open?id=1NIov8063bsvJZmgIwVRe60kXXdM6Ze0I
 
 ### Some examples
 | demo images | Prediction |
