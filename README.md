@@ -3,8 +3,7 @@
 ## Installation
 Install package
 ```bash
-pip install git+ssh://git@github.com/phvan2312/ALPHA_OCR_ATTN.git
-```
+pip install git+ssh://git@github.com/phvan2312/ALPHA_OCR_ATTN.git@fix_gpu_speed
 
 ## Usage
  
