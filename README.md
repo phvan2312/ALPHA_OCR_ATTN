@@ -3,7 +3,7 @@
 ## Installation
 Install package
 ```bash
-pip install git+ssh://git@github.com/phvan2312/ALPHA_OCR_ATTN.git
+pip install git+ssh://git@github.com/phvan2312/ALPHA_OCR_ATTN.git@fix_gpu_speed_v2
 ```
 
 ## Usage
@@ -25,7 +25,7 @@ print (results)
 ```
 
 ### Pretrained weights
-You can download pretrained weights via this link: https://drive.google.com/open?id=1kOyb2RwyrLsLYA5oHCxETu6WrNkMYdqp
+You can download pretrained weights via this link: https://drive.google.com/open?id=1ibT_n-CzWOGjsDXaaeDKiq7BKgJVKfPU
 
 ### Some examples
 | demo images | Prediction |
