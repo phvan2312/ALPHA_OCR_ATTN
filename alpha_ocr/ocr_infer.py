@@ -9,6 +9,24 @@ from alpha_ocr.utils import CTCLabelConverter, AttnLabelConverter
 from alpha_ocr.dataset import RawDataset, AlignCollate, SingleFileDataset, SingleImageArrayDataset
 from alpha_ocr.model import Model
 
+# default_opt = {
+#     'workers':0,
+#     'batch_max_length':10,
+#     'imgH':32,
+#     'imgW':100,
+#     'rgb':False,
+#     'character':"0123456789abcdefghijklmnopqrstuvwxyz",
+#     'PAD':False,
+#     'Transformation':'TPS',
+#     'FeatureExtraction':'VGG',
+#     'SequenceModeling':"BiLSTM",
+#     'Prediction':'Attn',
+#     'num_fiducial': 10,
+#     'input_channel': 1,
+#     'output_channel': 128,
+#     'hidden_size': 56,
+# }
+
 default_opt = {
     'workers':0,
     'batch_max_length':10,
@@ -20,11 +38,11 @@ default_opt = {
     'Transformation':'TPS',
     'FeatureExtraction':'VGG',
     'SequenceModeling':"BiLSTM",
-    'Prediction':'Attn',
-    'num_fiducial': 10,
+    'Prediction':'CTC',
+    'num_fiducial': 20,
     'input_channel': 1,
-    'output_channel': 128,
-    'hidden_size': 56,
+    'output_channel': 512,
+    'hidden_size': 256,
 }
 
 class my_opt:
@@ -144,7 +162,7 @@ import os
 
 if __name__ == '__main__':
     #saved_model_fn = "/home/vanph/Desktop/saved_models/TPS-VGG-BiLSTM-Attn-Seed1111/best_accuracy_small_200819.pth"
-    saved_model_fn = "/home/vanph/Desktop/alpha/best_accuracy_2408.pth"
+    saved_model_fn = "/home/vanph/Desktop/alpha/SackCounter/save_models/best_accuracy_ctc.pth"
     ocr_model = OCRInferenceModel(saved_model=saved_model_fn, mode='cuda')
 
     #time.sleep(15)
@@ -157,7 +175,7 @@ if __name__ == '__main__':
     # exit()
 
     s_time = time.time()
-    results = ocr_model.predict(img_input=cv2.imread("./demo_images/small_text_2.png"))
+    results = ocr_model.predict(img_input=cv2.imread("/home/vanph/Desktop/new_data/k/511M_IP Camera1_Camera_192.168.1.250_20190810141342_20190810141657_2314036.mp4_snapshot_00.09_[2019.08.14_23.14.06].jpg.png_0.png"))
     print(results, time.time() - s_time)
 
     s_time = time.time()
