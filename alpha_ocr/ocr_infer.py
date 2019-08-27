@@ -36,10 +36,10 @@ default_opt = {
     'character':"0123456789abcdefghijklmnopqrstuvwxyz",
     'PAD':False,
     'Transformation':'TPS',
-    'FeatureExtraction':'VGG',
+    'FeatureExtraction':'ResNet',
     'SequenceModeling':"BiLSTM",
     'Prediction':'CTC',
-    'num_fiducial': 20,
+    'num_fiducial': 30,
     'input_channel': 1,
     'output_channel': 512,
     'hidden_size': 256,
@@ -162,10 +162,10 @@ import os
 
 if __name__ == '__main__':
     #saved_model_fn = "/home/vanph/Desktop/saved_models/TPS-VGG-BiLSTM-Attn-Seed1111/best_accuracy_small_200819.pth"
-    saved_model_fn = "/home/vanph/Desktop/alpha/SackCounter/save_models/best_accuracy_ctc.pth"
+    saved_model_fn = "/home/vanph/Desktop/alpha/SackCounter/save_models/best_accuracy_ctc_2708.pth"
     ocr_model = OCRInferenceModel(saved_model=saved_model_fn, mode='cuda')
 
-    #time.sleep(15)
+    time.sleep(5)
 
     import cv2
     # s_time = time.time()
