@@ -27,6 +27,8 @@ print (results)
 ### Pretrained weights
 You can download pretrained weights via this link: https://drive.google.com/open?id=1y6n0X8VNHw185y72QGmnu8jQi2u27KlT
 
+Update, 27/08/19: https://drive.google.com/open?id=18x2Nikq8osVN7wUJNLRbvArteINne1o-
+
 ### Some examples
 | demo images | Prediction |
 | ---         |     ---      |
